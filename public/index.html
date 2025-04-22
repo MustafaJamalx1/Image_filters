@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Image Filters</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #7b2cbf;
+            --primary-dark: #5a189a;
+            --secondary: #c77dff;
+            --dark: #10002b;
+            --darker: #0c0120;
+            --light: #e0aaff;
+            --gray: #9d4edd;
+            --text: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(30, 0, 60, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(123, 44, 191, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            color: var(--light);
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            padding: 1.5rem;
+            background: rgba(123, 44, 191, 0.1);
+            border: 2px dashed var(--gray);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-label:hover {
+            border-color: var(--light);
+            background: rgba(123, 44, 191, 0.2);
+        }
+
+        select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(30, 0, 60, 0.5);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(123, 44, 191, 0.4);
+        }
+
+        .image-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .image-box {
+            background: rgba(30, 0, 60, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(123, 44, 191, 0.3);
+        }
+
+        .image-title {
+            padding: 1rem;
+            background: rgba(123, 44, 191, 0.1);
+            border-bottom: 1px solid rgba(123, 44, 191, 0.3);
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 400px;
+            object-fit: contain;
+            background: rgba(20, 0, 40, 0.7);
+            padding: 1rem;
+        }
+
+        .image-preview[src=""] {
+            display: none;
+        }
+
+        .download-btn {
+    width: 100%;
+    border-radius: 0 0 8px 8px;
+    margin-top: -4px; /* Removes the gap between image and button */
+    background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+    display: none; /* Hidden by default */
+}
+
+.download-btn:hover {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(123, 44, 191, 0.2);
+            border-top: 5px solid var(--light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .image-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Neon Image Filters</h1>
+            <p>Transform your photos with AI-powered filters</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="imageInput">Choose Image</label>
+                <input type="file" id="imageInput" accept="image/*">
+                <label for="imageInput" class="file-label">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span id="fileName">Click to upload or drag and drop</span>
+                </label>
+            </div>
+
+            <div class="control-group">
+                <label for="filterSelect">Select Filter</label>
+                <select id="filterSelect">
+                    <option value="cartoon">Cartoon Effect</option>
+                    <option value="pencil">Pencil Sketch</option>
+                    <option value="watercolor">Watercolor</option>
+                    <option value="mosaic">Mosaic</option>
+                    <option value="emboss">Emboss Effect</option>
+                </select>
+            </div>
+
+            <button id="processBtn" class="btn" onclick="processImage()">
+                <i class="fas fa-magic"></i> Apply Filter
+            </button>
+        </div>
+
+        <div id="notification" class="notification"></div>
+        <div id="loader" class="loader"></div>
+
+        <div class="image-container">
+            <div class="image-box">
+                <div class="image-title">Original Image</div>
+                <img id="originalPreview" class="image-preview" src="placeholder.jpg">
+            </div>
+            
+            <div class="image-box">
+                <div class="image-title">Filtered Result</div>
+                <img id="resultPreview" class="image-preview">
+                <!-- Add this download button -->
+                <button id="downloadBtn" class="btn download-btn">
+                    <i class="fas fa-download"></i> Download Image
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       
+    const loader = document.getElementById('loader');
+    const notification = document.getElementById('notification');
+    const originalPreview = document.getElementById('originalPreview');
+    const resultPreview = document.getElementById('resultPreview');
+    const imageInput = document.getElementById('imageInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const processBtn = document.getElementById('processBtn');
+    const fileName = document.getElementById('fileName');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Initialize
+    resultPreview.style.display = 'none';
+    downloadBtn.style.display = 'none';
+
+    function showNotification(message, type) {
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = 'block';
+    }
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileName.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                originalPreview.src = event.target.result;
+                resultPreview.src = '';
+                resultPreview.style.display = 'none';
+                downloadBtn.style.display = 'none';
+                notification.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    async function processImage() {
+        if (!imageInput.files[0]) {
+            showNotification('Please select an image first!', 'error');
+            return;
+        }
+
+        processBtn.disabled = true;
+        loader.style.display = 'block';
+        
+        try {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const response = await fetch('http://localhost:3000/process', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: event.target.result,
+                            filter: filterSelect.value
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Processing failed');
+                    }
+
+                    const data = await response.json();
+                    resultPreview.src = data.result;
+                    resultPreview.style.display = 'block';
+                    downloadBtn.style.display = 'block';
+                    showNotification('Filter applied successfully!', 'success');
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification(error.message, 'error');
+                } finally {
+                    loader.style.display = 'none';
+                    processBtn.disabled = false;
+                }
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+            loader.style.display = 'none';
+            processBtn.disabled = false;
+        }
+    }
+
+    function downloadImage() {
+        if (!resultPreview.src || resultPreview.src === '') {
+            showNotification('No filtered image to download', 'error');
+            return;
+        }
+        
+        try {
+            const link = document.createElement('a');
+            link.href = resultPreview.src;
+            link.download = `filtered-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('Download started!', 'success');
+        } catch (error) {
+            console.error('Download error:', error);
+            showNotification('Download failed', 'error');
+        }
+    }
+
+    downloadBtn.addEventListener('click', downloadImage);
+
+    </script>
+</body>
+</html>
